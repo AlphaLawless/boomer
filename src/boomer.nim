@@ -9,6 +9,7 @@ import x11/xlib,
        x11/xutil,
        x11/keysym,
        x11/xrandr,
+       x11/xshm,
        x11/cursorfont
 import opengl, opengl/glx
 import la
@@ -171,8 +172,8 @@ proc selectWindow(display: PDisplay): Window =
 proc xElevenErrorHandler(display: PDisplay, errorEvent: PXErrorEvent): cint{.cdecl.} =
   const CAPACITY = 256
   var errorMessage: array[CAPACITY, char]
-  discard XGetErrorText(display, errorEvent.error_code.cint, addr errorMessage, CAPACITY)
-  echo "X ELEVEN ERROR: ", $(addr errorMessage)
+  discard XGetErrorText(display, errorEvent.error_code.cint, cast[cstring](addr errorMessage), CAPACITY)
+  echo "X ELEVEN ERROR: ", $(cast[cstring](addr errorMessage))
 
 proc main() =
   let boomerDir = getConfigDir() / "boomer"
@@ -432,6 +433,9 @@ proc main() =
 
 
   let dt = 1.0 / rate.float
+  var originWindow: Window
+  var revertToReturn: cint
+  discard XGetInputFocus(display, addr originWindow, addr revertToReturn)
   while not quitting:
     # TODO(#78): Is there a better solution to keep the focus always on the window?
     if not windowed:
@@ -579,6 +583,7 @@ proc main() =
                    GL_BGRA,
                    GL_UNSIGNED_BYTE,
                    screenshot.image.data)
+  discard XSetInputFocus(display, originWindow, RevertToParent, CurrentTime);
   discard XSync(display, 0)
 
 main()
