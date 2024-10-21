@@ -1,4 +1,5 @@
 import strutils
+import os
 
 type Config* = object
   min_scale*: float
@@ -35,9 +36,10 @@ proc loadConfig*(filePath: string): Config =
       quit "Unknown config key `$#`" % [key]
 
 proc generateDefaultConfig*(filePath: string) =
+  createDir(splitPath(filePath).head)
   var f = open(filePath, fmWrite)
-  defer: f.close
-  f.write("min_scale = ", defaultConfig.min_scale, "\n")
-  f.write("scroll_speed = ", defaultConfig.scroll_speed, "\n")
-  f.write("drag_friction = ", defaultConfig.drag_friction, "\n")
-  f.write("scale_friction = ", defaultConfig.scale_friction, "\n")
+  defer: f.close()
+  f.writeLine("min_scale = ", defaultConfig.min_scale)
+  f.writeLine("scroll_speed = ", defaultConfig.scroll_speed)
+  f.writeLine("drag_friction = ", defaultConfig.drag_friction)
+  f.writeLine("scale_friction = ", defaultConfig.scale_friction)
